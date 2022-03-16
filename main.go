@@ -30,6 +30,8 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	fmt.Println("hello world")
+
 	flag.Parse()
 
 	http.HandleFunc("/", serveHome)
