@@ -30,8 +30,6 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	fmt.Println("hello world")
-
 	flag.Parse()
 
 	http.HandleFunc("/", serveHome)
@@ -55,6 +53,7 @@ func main() {
 		if roomHub, exist := roomDatabase[roomName]; exist {
 			fmt.Printf("Someone join room %v \n", roomName)
 			system.ServeWs(roomHub, w, r)
+
 		} else { // Create new room if not found
 			fmt.Printf("Room %v are created \n", roomName)
 			roomHub := system.NewHub(roomName, deleteRoomSignal)
@@ -64,6 +63,7 @@ func main() {
 		}
 	})
 
+	// Special API for broadcasting message to a channel
 	http.HandleFunc("/broadcast", func(w http.ResponseWriter, r *http.Request) {
 		roomName := r.URL.Query().Get("room")
 		message := r.URL.Query().Get("message")
@@ -76,8 +76,7 @@ func main() {
 		}
 	})
 
-	err := http.ListenAndServe(*addr, nil)
-	if err != nil {
+	if err := http.ListenAndServe(*addr, nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }

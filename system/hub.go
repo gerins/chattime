@@ -45,9 +45,10 @@ func (h *Hub) Run() {
 
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
+				delete(h.clients, client) // Remove client from clients pool
 				close(client.send)
 
+				// Delete room from roomDatabase if there is any client left
 				if len(h.clients) == 0 {
 					h.deleteRoom <- h.roomName
 					return
@@ -55,14 +56,17 @@ func (h *Hub) Run() {
 			}
 
 		case message := <-h.Broadcast:
+			// Sending message to all clients
 			for client := range h.clients {
 				select {
 				case client.send <- message:
 
+				// Cannot send message to client
+				// channel are already full with pending message
+				// can indicate client have network problem
 				default:
-					// Channel are full, can indicate client already closed
+					delete(h.clients, client) // Remove client from clients pool
 					close(client.send)
-					delete(h.clients, client)
 
 					if len(h.clients) == 0 {
 						h.deleteRoom <- h.roomName
